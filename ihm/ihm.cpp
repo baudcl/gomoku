@@ -50,13 +50,18 @@ Ihm::Ihm(QWidget *parent)
 
  QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
   if (msgBox.clickedButton() == (QAbstractButton*)iaButton) {
-    _game = new Game(&_ref, 19, false);
+    _game = new Game(&_ref, 19, true);
   } else if (msgBox.clickedButton() == (QAbstractButton*)twoPlayersButton) {
-    _game = new Game(&_ref, 19, false); 
+    _game = new Game(&_ref, 19, false);
   }
 
+  connect(_ui.actionDouble, SIGNAL(toggled(bool)), &_ref, SLOT(setDoubleThreeRule(bool)));
   connect(_ui.actionNewGame, SIGNAL(triggered()), &_ref, SLOT(reset()));
   connect(_ui.actionNewGame, SIGNAL(triggered()), this, SLOT(newGame()));
+  connect(_ui.action10ms, SIGNAL(triggered()), &_ref, SLOT(iaTime10()));
+  connect(_ui.action20ms, SIGNAL(triggered()), &_ref, SLOT(iaTime20()));
+  connect(_ui.action50ms, SIGNAL(triggered()), &_ref, SLOT(iaTime50()));
+  connect(_ui.actionEating, SIGNAL(toggled(bool)), &_ref, SLOT(setEatingAtEndForWin(bool)));
   connect(&_ref, SIGNAL(s_notifyVictory(int)), this, SLOT(winGame(int)));
   connect(_ui.actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
   connect(&_ref, SIGNAL(s_sendHmiText(const QString &)), _ui.textEdit, SLOT(append(const QString &)));
@@ -168,6 +173,7 @@ Game::Game(Referee *ref, int column, bool ia) : _cols(column), _numberBox(_cols 
 
     connect(this->_ref, SIGNAL(s_newPawl(int, int)), this, SLOT(addPawl(int, int)));
     connect(this->_ref, SIGNAL(s_deletePawl(int)), this, SLOT(deletePawl(int)));
+    connect(this->_ref, SIGNAL(iaPlay()), this, SLOT(iaCanPlay()));
     //    connect(this->_ref, SIGNAL(s_sendHmiText(const std::string &)), this, SLOT(dispHmiText(const std::string &)));
 
     hmiText << "Au tours du joueur " << _player << " de jouer";
@@ -188,6 +194,15 @@ Game::~Game()
  QDeclarativeListProperty<CellData> Game::cells(){
    return QDeclarativeListProperty<CellData>(this, &_cells, &cellsPropAppend,
  					    &cellsPropCount, &cellsPropAt, 0);
+}
+
+void Game::iaCanPlay()
+{
+  if (_ia)
+    {
+      _player = GET_OPPOSITE_COLOR(_player);
+      _ref->iaCanPlay(_player);
+    }
 }
 
 void Game::dispHmiText(const std::string &msg)
@@ -228,5 +243,10 @@ bool Game::clic(int index)
   return true;
 }
 
+bool Game::rclick(int index)
+{
+    _ref->getBoard()->DEBUG_METHOD_print_node(index, true);
+    return (true);
+}
 
 

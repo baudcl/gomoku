@@ -40,9 +40,16 @@
 #define ALIGNEMENT_STATE_NB_BITS 0x5 // 5 bits per alignement informations (3 for alignement + 2 for closed on left/right)
 #define ALIGNEMENT_STATE_SIZE_BIN 0x1F // 11111
 
+#define NB_HEURISTIC 0x2 // white and black
+#define HEURISTIC_FIRST_BIT (ALIGNEMENT_STATE_FIRST_BIT + (NB_NODE_ALIGNEMENT) * ALIGNEMENT_STATE_NB_BITS) //first bit of the heuristics bits
+#define HEURISTIC_NB_BITS 0xD // 13
+#define HEURISTIC_SIZE_BIN 0x1FFF // 1111 1111
+
 //#define MAX_ORIENTATION_NB 0x7ffffff  // 111 111 111 111 111 111 111 111 111
 //#define MAX_ALIGNEMENT_NB 0xfffff
+//#define MAX_HEURISTIC_NB 0xfffff
 
+//#define MASK_TOTAL ( (long long) ((MAX_HEURISTIC_NB << ((NB_NODE_ALIGNEMENT + ))) + (MAX_ALIGNEMENT_NB << ((NB_NODE_ALIGNEMENT + 1) * ALIGNEMENT_STATE_NB_BITS)) + MAX_ORIENTATION_NB)) /*0x7fffffffffff*/
 #define MASK_TOTAL ((long long) ULLONG_MAX)
 
 #define GET_ORIENTATION_STATE(POS, STATE) ((((long long) STATE) >> (NODE_STATE_NB_BITS * POS)) & NODE_STATE_SIZE_BIN)
@@ -50,6 +57,9 @@
 
 #define GET_ALIGNEMENT_STATE(DIR, STATE) ((((long long) STATE) >> ((DIR * ALIGNEMENT_STATE_NB_BITS) + ALIGNEMENT_STATE_FIRST_BIT) & ALIGNEMENT_STATE_SIZE_BIN))
 #define GET_ALIGNEMENT_MASK(DIR) (MASK_TOTAL ^ (((long long) ALIGNEMENT_STATE_SIZE_BIN) << ((ALIGNEMENT_STATE_NB_BITS * DIR) + ALIGNEMENT_STATE_FIRST_BIT)))
+
+#define GET_HEURISTIC_STATE(COLOR, STATE) (((long long) STATE) >> ((COLOR * HEURISTIC_NB_BITS) + HEURISTIC_FIRST_BIT) & HEURISTIC_SIZE_BIN)
+#define GET_HEURISTIC_MASK(COLOR) (MASK_TOTAL ^ (((long long) HEURISTIC_SIZE_BIN) << ((HEURISTIC_NB_BITS * COLOR) + HEURISTIC_FIRST_BIT)))
 
 #define GET_N_PLAYER(COLOR) (0x1 & COLOR)
 
@@ -90,7 +100,12 @@ public:
     /** delete a node */
     bool    deleteNode(int pos);
 
+    void    DEBUG_METHOD_print_node(int nodeNb, bool travesal);
+
+
     void   reset();
+
+    unsigned short   getNodeHeuristic(int pos, int color, bool calculate = true);
 
 
   int getEatenNode(int);
@@ -109,6 +124,12 @@ private:
   void    additionUpdateNeighbourState(int currentNodeNb, int color);
 
   void    deletionUpdateNeighbour(int currentNodeNb);
+
+  //IA
+
+  unsigned short    calculateNodeHeuristic(int pos, int color);
+
+  void     setNodeHeuristic(int pos, int color, unsigned short heuristic);
 };
 
 #endif

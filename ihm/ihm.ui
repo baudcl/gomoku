@@ -65,6 +65,8 @@
      <property name="title">
       <string>Rules</string>
      </property>
+     <addaction name="actionDouble"/>
+     <addaction name="actionEating"/>
     </widget>
     <addaction name="actionNewGame"/>
     <addaction name="menuRules"/>
@@ -74,6 +76,9 @@
     <property name="title">
      <string>Time</string>
     </property>
+    <addaction name="action10ms"/>
+    <addaction name="action20ms"/>
+    <addaction name="action50ms"/>
    </widget>
    <addaction name="menuGame"/>
    <addaction name="menuTime"/>
@@ -84,9 +89,46 @@
     <string>Quit</string>
    </property>
   </action>
+  <action name="actionDouble">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Double 3</string>
+   </property>
+  </action>
+  <action name="actionEating">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Manger!!</string>
+   </property>
+  </action>
   <action name="actionNewGame">
    <property name="text">
     <string>New Game</string>
+   </property>
+  </action>
+  <action name="action10ms">
+   <property name="text">
+    <string>10ms</string>
+   </property>
+  </action>
+  <action name="action20ms">
+   <property name="text">
+    <string>20ms</string>
+   </property>
+  </action>
+  <action name="action50ms">
+   <property name="text">
+    <string>50ms</string>
    </property>
   </action>
  </widget>

@@ -288,6 +288,12 @@ void board::additionUpdateNeighbourAlignement(int currentNodeNb, int color)
                     }
                     else
                     {
+                        //if empty node, reset heuristic
+                        if (currentNodeColor == BOTH_CAN_PLAY)
+                        {
+                            this->setNodeHeuristic(neighbIndex, color, 0);
+                            this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
+                        }
                         break;
                     }
                     neighbIndex = getNewNodeNumber(neighbIndex, i, error);
@@ -303,10 +309,22 @@ void board::additionUpdateNeighbourAlignement(int currentNodeNb, int color)
                         this->setAlignementInformations(neighbIndex, i % 4, originAlignInfo);
                     else
                     {
+                        //if empty node, reset heuristic
+                        if (currentNodeColor == BOTH_CAN_PLAY)
+                        {
+                            this->setNodeHeuristic(neighbIndex, color, 0);
+                            this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
+                        }
                         break;
                     }
                     neighbIndex = getNewNodeNumber(neighbIndex, i, error);
                 }
+            }
+            else
+            {//NO NODE ON THIS CASE
+                //reset heuristic value of the siblings nodes
+                this->setNodeHeuristic(neighbIndex, color, 0);
+                this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
             }
         }
     }
@@ -354,6 +372,12 @@ bool    board::deleteNode(int pos)
                 {
                     if ((currentNodeColor = this->getNodeColor(neighbIndex)) != originColor)
                     {
+                        //if empty node node, reset heuristic score
+                        if (currentNodeColor == BOTH_CAN_PLAY)
+                        {
+                            this->setNodeHeuristic(neighbIndex, originColor, 0);
+                            this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
+                        }
                         break;
                     }
                     alignInfo = this->getAlignementInformations(neighbIndex, i % 4);
@@ -372,6 +396,12 @@ bool    board::deleteNode(int pos)
                 {
                     if ((currentNodeColor = this->getNodeColor(neighbIndex)) != oppositeColor)
                     {
+                        //if empty node node, reset heuristic score
+                        if (currentNodeColor == BOTH_CAN_PLAY)
+                        {
+                            this->setNodeHeuristic(neighbIndex, originColor, 0);
+                            this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
+                        }
                         break;
                     }
                     alignInfo = this->getAlignementInformations(neighbIndex, i % 4);
@@ -382,11 +412,78 @@ bool    board::deleteNode(int pos)
                     neighbIndex = this->getNewNodeNumber(neighbIndex, i, error);
                 }
             }
+            else
+            {//NO NODE ON THIS CASE
+                //reset heuristic value of the siblings nodes
+                this->setNodeHeuristic(neighbIndex, originColor, 0);
+                this->setNodeHeuristic(neighbIndex, oppositeColor, 0);
+            }
         }
     }
     //delete node informations
     this->_board[pos] = 0;
     return (true);
+}
+
+void    board::DEBUG_METHOD_print_node(int nodeNb, bool travesal)
+{
+    alignementInfo info;
+    travesal = true;
+
+    std::cout << "Information sur le noeud " << nodeNb << " : il est de couleur " << this->getNodeColor(nodeNb) << std::endl;
+    std::cout << "Heuristic B " << (int) this->getNodeHeuristic(nodeNb, BLACK, false) << " W " << (int) this->getNodeHeuristic(nodeNb, WHITE, false) << std::endl;
+    for (int i = 0; i < 4; ++i)
+    {
+        info = this->getAlignementInformations(nodeNb, i);
+        std::cout << "Alignement en " << i << " nb : " << info.nbAlign << " closed : R " << info.closedOnRight << " L " << info.closedOnLeft << std::endl;
+    }
+
+    //We want to have a human readable output :
+    // NW N NE
+    // W C E
+    // SW S SE
+    int orderIdx[] = {7, 0, 1,
+                      6,/*C*/2,
+                      5, 4, 3};
+
+    for (unsigned int k = 0; k < 8; ++k)
+    {
+        if (k == 3 || k == 5)
+            std::cout << std::endl;
+            //std::cout << (k - 1) % 8 << std::endl;
+        switch (this->getNeighbourColor(nodeNb, orderIdx[k]))
+        {
+            case BLACK:
+                std::cout << "b ";
+                break;
+            case WHITE:
+                std::cout << "w ";
+                break;
+            case BOTH_CAN_PLAY:
+                std::cout << "0 ";
+                break;
+            default:
+                std::cout << "? ";
+        }
+        if (k == 3)
+        {
+            switch (this->getNodeColor(nodeNb))
+            {
+                case BLACK:
+                    std::cout << "b ";
+                    break;
+                case WHITE:
+                    std::cout << "w ";
+                    break;
+                case BOTH_CAN_PLAY:
+                    std::cout << "0 ";
+                    break;
+                default:
+                    std::cout << "? ";
+            }
+        }
+    }
+    std::cout << std::endl;
 }
 
 int	board::getEatenNode(int color)
@@ -398,3 +495,104 @@ void	board::eatenNodeUp(int color)
 {
   eatenNode[color]++;
 }
+
+
+unsigned short    board::calculateNodeHeuristic(int pos, int color)
+{
+  alignementInfo info;
+  int dir = 0;
+  int finalHeur = 0;
+  int heur;
+  bool error;
+  int dirCpt[4];
+
+  while (dir < 4)
+    {
+      heur = 0;
+      info = getAlignementInformations(pos, dir);
+      dir++;
+      if (info.nbAlign >= 5)
+	  return 200;
+      if (info.nbAlign > 1)
+  	heur = pow(info.nbAlign, 2);
+      if (!info.closedOnLeft && !info.closedOnRight)
+  	heur += heur / 2;
+      if (info.closedOnLeft && info.closedOnRight)
+  	heur -= 20;
+      if (info.closedOnLeft || info.closedOnRight)
+	heur -= 10;
+      if (!info.nbAlign)
+       	heur -= 5;
+      if (info.nbAlign - 1)
+       	heur += 5;
+      finalHeur += heur;
+    }
+  dir = dirCpt[0] = dirCpt[1] = dirCpt[2] = dirCpt[3] = 0;
+  while (dir < 8)
+    {
+      heur = 0;
+      int idx = getNewNodeNumber(pos, dir, error);
+      if (!error && getNodeColor(idx) == (GET_OPPOSITE_COLOR(color)))
+	{
+	  info = getAlignementInformations(idx, dir % 4);
+	  dirCpt[dir % 4] += info.nbAlign;
+	  switch (info.nbAlign)
+	    {
+	    case 2:
+	      if (info.closedOnRight && info.closedOnLeft)
+		{
+		  heur = pow((eatenNode[GET_N_PLAYER(color)] * 2) + 2, 5);
+		  heur *= 2;
+		}
+	      break;
+	    case 3:
+	      if (info.closedOnRight || info.closedOnLeft)
+		heur = 30;
+	      else
+		heur = 50;
+	      break;
+	    case 4:
+	      heur = 100;
+	      break;
+	    }
+	  finalHeur += heur;
+	}
+      dir++;
+    }
+  dir = 0;
+  while (dir < 4)
+    {
+      heur = 0;
+      heur = pow(dirCpt[dir], 5);
+      heur += heur / 2;
+      finalHeur += heur;
+      dir++;
+    }
+  if (finalHeur <= 0)
+    return 1;
+  return finalHeur + 1;
+}
+
+void board::setNodeHeuristic(int pos, int color, unsigned short heuristic)
+{
+    int colorIdx = GET_N_PLAYER(color);
+    if (heuristic > 8191)
+        heuristic = 8191;
+    long long lheur = ((long long) heuristic) << (HEURISTIC_FIRST_BIT + (colorIdx * HEURISTIC_NB_BITS));
+
+    this->_board[pos] &= GET_HEURISTIC_MASK(colorIdx);
+    this->_board[pos] += lheur;
+}
+
+unsigned short board::getNodeHeuristic(int pos, int color, bool calculate)
+{
+    int colorIdx = GET_N_PLAYER(color);
+    unsigned short heuristic = GET_HEURISTIC_STATE(colorIdx, this->_board[pos]);
+    if (heuristic == 0 && calculate)
+    {
+        heuristic = this->calculateNodeHeuristic(pos, color);
+        this->setNodeHeuristic(pos, color, heuristic);
+    }
+    return heuristic;
+}
+

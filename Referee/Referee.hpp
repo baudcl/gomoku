@@ -15,6 +15,8 @@
 
 #define NODE_NB(NB) NB << "(" << NB / BOARD_WIDTH << ";" << NB - ((NB / BOARD_WIDTH) * BOARD_HEIGHT) << ")"
 
+class ia;
+
 class Referee: public QObject
 {
     Q_OBJECT
@@ -25,6 +27,8 @@ public:
   bool setStone(int, int);
 
   board *getBoard();
+
+  void iaCanPlay(int player);
 
 
     /** Check if a new node respect enabled rules */
@@ -40,6 +44,9 @@ public slots:
   void setEatingAtEndForWin(bool b);
   /** Reset board **/
   void reset();
+  void iaTime10();
+  void iaTime20();
+  void iaTime50();
 
 signals:
   /** signal corresponding to the addition of a node */
@@ -50,6 +57,7 @@ signals:
   void  s_sendHmiText(const QString &msg);
   /** notify to the hmi that a player(color) has win */
   void  s_notifyVictory(int color);
+  void iaPlay();
 
 private:
     /** enable/disable double three free rule */
@@ -60,6 +68,8 @@ private:
     /** Board where all the the board informations are stored */
     board *plateau;
   int _time;
+
+    //ia      *ia;
 
     /** for the rule that check if winning alignement can be eaten */
     std::vector<int>    winningAlignements;

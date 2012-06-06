@@ -74,10 +74,12 @@ signals:
 
 public slots:
   Q_INVOKABLE bool clic(int);
+  Q_INVOKABLE bool rclick(int);
   void addPawl(int);
   void addPawl(int, int);
   void deletePawl(int);
   void dispHmiText(const std::string &);
+  void iaCanPlay();
 
 private:
   bool onBoard( int r, int c ) const { return r >= 0 && r < _cols && c >= 0 && c < _cols; }

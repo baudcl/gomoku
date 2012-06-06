@@ -1,5 +1,6 @@
 #include "Referee.hpp"
 #include <sstream>
+#include "ia.hpp"
 
 //DEBUG
 #include <iostream>
@@ -10,7 +11,23 @@ Referee::Referee(QObject *parent) : QObject(parent)
   this->doubleThreeFreeEnable = true;
   this->eatAtEndEnable = true;
   this->plateau = new board();
+  //ia = new ia(&plateau, WHITE);
   _time = 10;
+}
+
+void Referee::iaTime10()
+{
+  _time = 10;
+}
+
+void Referee::iaTime20()
+{
+  _time = 20;
+}
+
+void Referee::iaTime50()
+{
+  _time = 50;
 }
 
 void    Referee::setDoubleThreeRule(bool b)
@@ -125,6 +142,8 @@ bool Referee::setStone(int pos, int color)
                     }
                 }
             }
+	    if (color == BLACK)
+	      emit iaPlay();
             return (true);
         }
         else
@@ -135,6 +154,7 @@ bool Referee::setStone(int pos, int color)
     }
     else
     {
+        plateau->DEBUG_METHOD_print_node(pos, true);
         hmiText << "il existe déjà un noeud a la position " << pos;
         QString s = QString::fromStdString(hmiText.str());
         emit s_sendHmiText(s);
@@ -509,4 +529,10 @@ bool    Referee::checkForDoubleThreeAlign(int nodeIndex, int currentColor)
         }
     }
     return (false);
+}
+
+void Referee::iaCanPlay(int player)
+{
+  ia *iaaa = new ia(plateau, player, this, _time);
+  setStone(iaaa->whereDoYouWanToPlay(), player);
 }
